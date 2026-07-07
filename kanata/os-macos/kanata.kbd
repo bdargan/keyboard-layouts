@@ -1,0 +1,297 @@
+(defcfg
+  process-unmapped-keys yes ;; Vital for accurate multi-layout tracking
+  concurrent-tap-hold     yes
+  allow-hardware-repeat   no
+  chords-v2-min-idle 20    
+  ;; ** For MacOS **
+  ;; input  (iokit-name "my-keyboard-product-string")
+  ;; output (kext)
+
+  ;; If any key was pressed within 150ms, resolve tap-hold as tap immediately.
+  ;; Prevents accidental modifier activation during fast typing.
+  tap-hold-require-prior-idle 150
+)
+;; spc for sym, clash with nvim ldr
+;; Source layer - defines which keys are intercepted
+(defsrc
+  esc     f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12
+  grv  1    2    3    4    5    6    7    8    9    0    -    =    bspc
+  tab  q    w    e    r    t    y    u    i    o    p    [    ]    \
+  caps a    s    d    f    g    h    j    k    l    ;    '    ret
+  lsft    z    x    c    v    b    n    m    ,    .    /    rsft
+  fn   lctl lalt lmet           spc            rmet ralt rctl
+
+  ;; --- External Navigation & Numpad Blocks ---
+  ;;ins  home pgup  del  end  pgdn  up left down rght
+  ;;kpnum kpslsh kpast kpmins kp7 kp8 kp9 kppls kp4 kp5 kp6 kp1 kp2 kp3 kpenter kp0 kpdot
+)
+
+;; - `switch` checks if the `key-timing` of the 3rd most recent key is less than a quarter of a second and, if so, skips the modifier evaluation.
+;; - 3 represents the `key-recency` and should equal the maximum number of modifiers to be held simultaneously (accounting for chords).
+;; - 250 represents the elapsed `time` since the key specified above was pressed and it should be adjusted to your typing speed.
+;; - `tap-hold-release-timeout` triggers a modifier while held only if another key is pressed *and* released before the timeout, after which the expected repeat action for the key would trigger instead.
+
+;;(defchords ch_jk 50
+;;  (k  ) k
+;; (  j) j
+;;  (k j) esc
+;;)
+
+(defvar
+      tap-time 150 
+      hold-time 200 
+      hold-time-xs 200 
+      ;; Timing variables for home row mods and chords
+      streak-count 3      ;; Number of keys to consider a "typing streak"
+      streak-time 325     ;; Max time (ms) window to maintain a streak
+      tap-timeout 200     ;; Max time (ms) for a tap to be recognized
+      hold-timeout 250    ;; Time (ms) to wait before a hold is recognized
+      chord-timeout 50    ;; Window (ms) to press keys together for a chord
+)
+
+;; 'flowtap' checks if you are typing fast. 
+;; If so, it immediately taps the key ($flow).
+;; Otherwise, it executes the tap/hold logic ($tap).
+(deftemplate flowtap (flow tap)
+  (switch 
+    ((key-timing $streak-count less-than $streak-time)) $flow break
+    () $tap break
+  )
+)
+
+;; 'charmod' implements home row modifiers.
+;; It uses 'flowtap' to avoid mod misfires during fast typing.
+;; tap-hold-release-timeout resolves as a hold if another key is pressed and released.
+(deftemplate charmod (char mod)
+  (t! flowtap
+    $char
+    (tap-hold-release-timeout $tap-timeout $hold-timeout $char $mod $char reset-timeout-on-press)
+  )
+)
+
+;;; ==========================================
+;; 🧠 THE ADAPTIVE STATE MACHINE (THE MAGIC)
+;; ==========================================
+(defalias
+  mgc (switch
+    ((key-history o 1)) a break
+    ((key-history e 1)) u break
+    ((key-history u 1)) e break
+    ((key-history a 1)) o break
+    ((key-history i 1)) y break
+    ((key-history t 1)) h break
+    ((key-history n 1)) s break
+    ((key-history s 1)) n break
+    ((key-history r 1)) m break
+    ((key-history l 1)) d break
+    ((key-history c 1)) k break
+    ((key-history . 1)) / break
+    ;;() spc break
+  )
+  )
+
+;;(deflayermap (colemak-dh)
+;; a (t! charmod a lmet)
+;; s (t! charmod s lsft)
+;; d (t! charmod d lctl)
+;; f (t! charmod f lalt)
+;; j (t! charmod j lalt)
+;; k (t! charmod k rctl)
+;; l (t! charmod l rsft)
+;; ; (t! charmod ; rmet)
+;; v (t! charmod v ralt)
+;; m (t! charmod m ralt)
+;;)
+
+;;(defalias
+;;;; hold e or i for hyper key
+;;hyper (multi lctl lalt lmet lshift)
+;;e (t! charmod e (multi lctl lalt lmet lshift))
+;;i (t! charmod i (multi rctl ralt rmet rshift))
+;;a (t! charmod a lctl)
+;;s (t! charmod s lalt)
+;;d (t! charmod d lmet)
+;;f (t! charmod f lsft)
+;;j (t! charmod j rsft)
+;;k (t! charmod k rmet)
+;;l (t! charmod l ralt)
+;;; (t! charmod ; rctl)
+;;)
+
+    
+(defalias
+  ;; Layout Profile Changers (Linked to numbers 1, 2, 3 inside the profile-control layer)
+  to-col (layer-switch colemak-dh)
+  to-str (layer-switch magic-sturdy)
+  to-qwe (layer-switch qwerty)
+
+  ;; Tapping outputs ` (backtick). Holding opens the Profile Control Layer.
+  grv-ldr (tap-hold-release $tap-time $hold-time grv (layer-toggle profile-control))
+
+  ;; Standard Layer Toggles
+  ;; todo spc for syms no good for vim, conflict with my ldr 
+  spc-sym (tap-hold-press-efficienT $tap-time $hold-time spc (layer-toggle symbols-geuster-orig))
+  caps-esc-ctl (tap-hold-release $tap-time $hold-time-xs esc lctl)
+  rmet-sym (tap-hold $tap-time $hold-time ralt (layer-toggle symbols-geuster-orig)) 
+  ;; 2. Left Thumb Magic Key on LMet (Fires magic on tap, acts as LMet on hold)
+  ;; Add your specific Afterburner fallback 'rpt' macro logic inside your macro rules
+  mgc-met (tap-hold $tap-time $tap-time @mgc lmet)
+
+  ;; 3. Right Thumb Repeat Key on RMet (Fires repeat on tap, acts as RMet on hold)
+  rpt-met (tap-hold $tap-time $tap-time rpt rmet)
+
+  ;; =========================================================================
+  ;; 1. Colemak-DH Home-Row Mods 
+  ;; Home-row SGAC: Shift, Gui/Cmd, Alt, Control
+  ;; Home-row letters: A S R T | N E I O
+  ;; =========================================================================
+
+  a_col (t! charmod a lsft )
+  r_col (t! charmod r lmet)
+  s_col (t! charmod s lalt ) ;; Left Cmd
+  t_col (t! charmod t lctl )
+  n_col (t! charmod n rctl )
+  e_col (t! charmod e ralt ) 
+  i_col (t! charmod i rmet );; Right Cmd
+  o_col (t! charmod o rsft )
+
+  ;; 2. QWERTY Home-Row Mods
+  a_qwe (t! charmod a lsft )
+  s_qwe (t! charmod s lmet )
+  d_qwe (t! charmod d lalt ) ;; Left Cmd
+  f_qwe (t! charmod f lctl )
+  j_qwe (t! charmod j rctl )
+  k_qwe (t! charmod k ralt )
+  l_qwe (t! charmod l rmet ) ;; Right Cmd
+  sem_q (t! charmod ; rsft )
+
+  ;; 3. Sturdy Home-Row Mods (Home row: S T R D  |  N E A I) 
+  s_stu (t! charmod s lsft)
+  t_stu (t! charmod t lmet)
+  r_stu (t! charmod r lalt) ;; Left Cmd
+  d_stu (t! charmod d lctl)
+  n_stu (t! charmod n rctl)
+  e_stu (t! charmod e ralt) ;; Right Cmd
+  a_stu (t! charmod a rmet)
+  i_stu (t! charmod i rsft)
+
+  ;; Fix for Arc Browser shortcuts from your previous question
+  ;;ct_col (cmd t)  ;; Triggers Cmd+T in Colemak-DH (bound to physical F key)
+  ;;ct_qwe (cmd t)  ;; Triggers Cmd+T in QWERTY (bound to physical T key)
+)
+
+;; ==========================================
+;; BASE LAYER 1: default layer Pure QWERTY (Pass-Through Profile)
+;; ==========================================
+(deflayer qwerty
+  esc      f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12
+  @grv-ldr 1    2    3    4    5    6    7    8    9    0    -    =    bspc
+  tab      q    w    e    r    t    y    u    i    o    p    [    ]    \
+  @caps-esc-ctl a @s_qwe @d_qwe @f_qwe g    h    @j_qwe @k_qwe @l_qwe ; '    ret
+  lsft     z    x    c    v    b    n    m    ,    .    /    rsft
+  fn       lctl lalt lmet          @spc-sym        rmet ralt rctl
+)
+
+;; ==========================================
+;; BASE LAYER 2: Colemak-DH (Default Alpha Profile)
+;; ==========================================
+(deflayer colemak-dh
+  esc      f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12
+  @grv-ldr 1    2    3    4    5    6    7    8    9    0    -    =    bspc
+  tab      q    w    f    p    b    j    l    u    y    ;    [    ]    \
+  @caps-esc-ctl     @a_col @r_col    @s_col    @t_col    g    m    @n_col    @e_col    @i_col    o '    ret
+  lsft       x    c    d    v    z    k    h    ,    .    /    rsft
+  fn lctl  lalt lmet                @spc-sym            @rmet-sym ralt rctl 
+)
+
+;; ==========================================
+;; Original magic-sturdy from icelaks - 
+;; ==========================================
+;;V M L C P "        | B ^ U O , \
+;;S T R D Y Q        $ F N E A I -
+;;X K J G W            Z H ' ? .
+;;        ⎵ ⇥     / @ ⇧
+;;^ is the magic key, and @ is the repeat key.
+
+;; ==========================================
+;;2. Stagger-Neutral Alpha Translation
+;; ==========================================
+;;The alphanumeric blocks have been shifted horizontally by one unit on the top and bottom rows. 
+;;This shift counteracts the physical slant of standard laptop keys, keeping the columns straight relative to your natural typing angles:
+;;V  M  L  C  P        B  U  O  ,  .
+;;S  T  R  D  Y        F  N  E  A  I  '
+;;X  K  J  G  W        Z  H  /  ?  \
+;; ==========================================
+;; BASE LAYER 3: Magic Sturdy (Learning Profile)
+;; ==========================================
+;;(deflayer magic-sturdy
+;;  esc      f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12
+;;  @grv-ldr 1    2    3    4    5    6    7    8    9    0    -    =    bspc
+;;  tab      v    m    l    c    p    x    f    o    u    j    [    ]    \
+;;  @caps-esc-ctl s @t_stu    @r_stu    @d_stu    y    b    @n_stu    @e_stu    @a_stu    i '    ret
+;;  lsft     z    k    q    g    w    m    h    /    ,    .    rsft
+;;  fn       lctl lalt @mgc-met  @spc-sym @rpt-met ralt rctl 
+;;)
+
+(deflayer magic-sturdy
+  esc      f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12
+  @grv-ldr      1    2    3    4    5    6    7    8    9    0    -    =    bspc
+  tab      v    m    l    c    p    b    u    o    ,    . [    ]    \
+  @caps-esc-ctl s    @t_stu    @r_stu    @d_stu    y    f    n    e a i ' ret
+  lsft     x    k    j    g    w    z    h    /    S-/    q    rsft
+  fn       lctl lalt @mgc-met          @spc-sym @rpt-met ralt rctl
+)
+
+;; ==========================================
+;; CONTROL LAYER: The Layout Dashboard (Hold Grave to access)
+;; ==========================================
+(deflayer profile-control
+  _     _    _    _            _    _    _    _    _    _    _    _    _
+  _   @to-qwe @to-col @to-str  _    _    _    _    _    _    _    _    _    _
+  _    _       _       _       _    _    _    _    _    _    _    _    _    _
+  lrld    _       lrld _ _    _    _    _    _    _    _    _    _
+  _    _       _       _       _    _    _    _    _    _    _   _ 
+  _    _       _       _            _              _    _  _
+)
+
+;; ==========================================
+;; LAYER 4: The Programming Symbol Layer 
+;; ==========================================
+(deflayer symbols-geuster-orig
+  _    _    _    _    _    _    _    _    _    _    _    _    _    _
+  _    `    S-,    S-.    -    S-\    S-6  S-[  S-]  S-4  S-.    _    _    _
+  _    S-1    S-8    /    =    S-7  S-3  S-9  S-0  ;  S-'    _    _    _
+  _    S-`    +    [    ]  S-5  S-2  S-;  ,  .  '    _    _
+  _    _    _    _    _    _    _    _    _    _    _    
+  _    _    _    _             _               _    _ _
+)
+;;(deflayer symbols-orig
+;;  _    _    _    _    _    _    _    _    _    _    _    _    _    _
+;;  _    _    _    _    _    _    _    _    _    _    _    _    _    _
+;;  _    {    }    [    ]    S-6  S-5  S-4  S-7  S-\  \    _    _    _
+;;  _    +    -    =    S-8  S-`  S-1  S-2  S-3  S-;  ;    _    _
+;;  _    S-9    S-0    _    _    _    _    _    _    _    _    
+;;  _    _    _    _             _               _    _ _
+;;)
+;;(deflayer sym-nums
+;;  _        _    _    _    _    _    _    _    _    _    _    _    _    _
+ ;; _        !    @    #    $    %    ^    &    *    ;    :    _    _    _
+;;  _        {    }    [    ]    ~    \    7    8    9    +    _    _    _
+;;  _        _    _    (    )    `    |    4    5    6    -    =    _    _
+;;  _        <    >    ?    /    _    _    1    2    3    *    _
+;;  _        _    _    _              _              0    .    _    _
+;;)
+
+;; ==========================================
+;; LAYER 5: Navigation & Number Layer
+;; ==========================================
+(deflayer navigation
+  _    _    _    _    _    _    _    _    _    _    _    _    _    _
+  _    _    _    _    _    _    _    _    _    _    _    _    _    _
+  _    1    2    3    4    5    6    7    8    9    0    _    _    _
+  _    _    _    _    _    _    left down up   rght _    _    _
+  _    _    _    _    _    _    _    _    _    _    _    
+  _    _    _    _             _               _    _ _
+)
+
+
