@@ -130,15 +130,22 @@
 
   ;; Standard Layer Toggles
   ;; todo spc for syms no good for vim, conflict with my ldr 
-  spc-sym (tap-hold-press-efficienT $tap-time $hold-time spc (layer-toggle symbols-geuster-orig))
+  spc-sym (tap-hold-press $tap-time $hold-time spc (layer-toggle symbols-r2))
+ ;;spc-sym (tap-hold-press-efficient $tap-time $hold-time spc (layer-toggle symbols-getruer-orig))
+
   caps-esc-ctl (tap-hold-release $tap-time $hold-time-xs esc lctl)
-  rmet-sym (tap-hold $tap-time $hold-time ralt (layer-toggle symbols-geuster-orig)) 
+  rpt-sym (tap-hold $tap-time $hold-time rpt (layer-toggle symbols-r2)) 
+ 
+  ;; l-num-r-sym activate with ralt tap
+
+  ;; r-num-l-sym activate with lalt tap
+
   ;; 2. Left Thumb Magic Key on LMet (Fires magic on tap, acts as LMet on hold)
   ;; Add your specific Afterburner fallback 'rpt' macro logic inside your macro rules
-  mgc-met (tap-hold $tap-time $tap-time @mgc lmet)
+  mgc-met (tap-hold $tap-time $hold-time @mgc lmet)
 
   ;; 3. Right Thumb Repeat Key on RMet (Fires repeat on tap, acts as RMet on hold)
-  rpt-met (tap-hold $tap-time $tap-time rpt rmet)
+  rpt-met (tap-hold $tap-time $hold-time rpt rmet)
 
   ;; =========================================================================
   ;; 1. Colemak-DH Home-Row Mods 
@@ -175,9 +182,8 @@
   a_stu (t! charmod a rmet)
   i_stu (t! charmod i rsft)
 
-  ;; Fix for Arc Browser shortcuts from your previous question
-  ;;ct_col (cmd t)  ;; Triggers Cmd+T in Colemak-DH (bound to physical F key)
-  ;;ct_qwe (cmd t)  ;; Triggers Cmd+T in QWERTY (bound to physical T key)
+  ;; Fix for Arc Browser shortcuts - the use keycodes, use lmet to get these
+  ;;ct_qwe (cmd t)  ;; Triggers Cmd+T in QWERTY (bound to physical T key
 )
 
 ;; ==========================================
@@ -201,7 +207,7 @@
   tab      q    w    f    p    b    j    l    u    y    ;    [    ]    \
   @caps-esc-ctl     @a_col @r_col    @s_col    @t_col    g    m    @n_col    @e_col    @i_col    o '    ret
   lsft       x    c    d    v    z    k    h    ,    .    /    rsft
-  fn lctl  lalt lmet                @spc-sym            @rmet-sym ralt rctl 
+  fn lctl  lalt lmet                @spc-sym         @rpt-sym ralt rctl 
 )
 
 ;; ==========================================
@@ -224,21 +230,12 @@
 ;; ==========================================
 ;; BASE LAYER 3: Magic Sturdy (Learning Profile)
 ;; ==========================================
-;;(deflayer magic-sturdy
-;;  esc      f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12
-;;  @grv-ldr 1    2    3    4    5    6    7    8    9    0    -    =    bspc
-;;  tab      v    m    l    c    p    x    f    o    u    j    [    ]    \
-;;  @caps-esc-ctl s @t_stu    @r_stu    @d_stu    y    b    @n_stu    @e_stu    @a_stu    i '    ret
-;;  lsft     z    k    q    g    w    m    h    /    ,    .    rsft
-;;  fn       lctl lalt @mgc-met  @spc-sym @rpt-met ralt rctl 
-;;)
-
 (deflayer magic-sturdy
-  esc      f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12
-  @grv-ldr      1    2    3    4    5    6    7    8    9    0    -    =    bspc
-  tab      v    m    l    c    p    b    u    o    ,    . [    ]    \
-  @caps-esc-ctl s    @t_stu    @r_stu    @d_stu    y    f    n    e a i ' ret
-  lsft     x    k    j    g    w    z    h    /    S-/    q    rsft
+  esc          f1   f2             f3        f4   f5   f6   f7   f8   f9   f10  f11  f12
+  @grv-ldr      1    2              3         4    5    6    7    8    9    0     -    =    bspc
+  tab           v    m              l         c    p    b    u    o    ,    .     [    ]    \
+  @caps-esc-ctl s    @t_stu    @r_stu    @d_stu    y    f    n    e    a    i     '  ret
+  lsft          x         k         j         g    w    z    h    /    S-/  q  rsft
   fn       lctl lalt @mgc-met          @spc-sym @rpt-met ralt rctl
 )
 
@@ -246,23 +243,40 @@
 ;; CONTROL LAYER: The Layout Dashboard (Hold Grave to access)
 ;; ==========================================
 (deflayer profile-control
-  _     _    _    _            _    _    _    _    _    _    _    _    _
-  _   @to-qwe @to-col @to-str  _    _    _    _    _    _    _    _    _    _
-  _    _       _       _       _    _    _    _    _    _    _    _    _    _
-  lrld    _       lrld _ _    _    _    _    _    _    _    _    _
-  _    _       _       _       _    _    _    _    _    _    _   _ 
-  _    _       _       _            _              _    _  _
+  _         _       _       _   _    _    _    _    _    _    _    _    _
+  _   @to-qwe @to-col @to-str   _    _    _    _    _    _    _    _    _    _
+  _    _       _       _        _    _    _    _    _    _    _    _    _    _
+  lrld    _       lrld _        _    _    _    _    _    _    _    _    _
+  _       _       _       _       _    _    _    _    _    _    _    _ 
+  _       _       _       _            _              _    _  _
 )
 
 ;; ==========================================
-;; LAYER 4: The Programming Symbol Layer 
+;; LAYER 4: The Programming Symbol Layer
+;; r2 based on jonas post 5, will revise from then. 
+;; todo: repeat key on home row rh of ]
+;; todo: combos for syms from base.
+;; roll considerations in editing
+;; 13
+;; 14
+;; 14
+;; 8
+;; obs, rolls, with ${} and ` not available 
 ;; ==========================================
-(deflayer symbols-geuster-orig
+(deflayer symbols-r2
+  _    _        _      _      _    _       _    _    _    _    _    _    _    
+  _    _        _      _      _    _       _    _    _    _    _    _    _    _ 
+  _    S-`    S-=    S-8    S-1    _     S-6  S-3  S-2  S-6  .    _    _    _ 
+  _    S-\    S-[    S-]      -    \       `  S-/    [    ]    _    _    _   
+  _      ,    S-,    S-.    S-5    _       /  S-7  S-9  S-0  S--    _
+  _    _    _    _                 _               _    _ _
+)
+(deflayer symbols-getruer-orig
   _    _    _    _    _    _    _    _    _    _    _    _    _    _
-  _    `    S-,    S-.    -    S-\    S-6  S-[  S-]  S-4  S-.    _    _    _
-  _    S-1    S-8    /    =    S-7  S-3  S-9  S-0  ;  S-'    _    _    _
+  _    _ _ _   _    _    _    _    _    _    _    _    _    _ 
+  _    `    S-,    S-.    -    S-\    S-6  S-[  S-]  S-4  S-.    _    _    
+  _    S-1    S-8    /    =    S-7  S-3  S-9  S-0  ;  S-'    _        
   _    S-`    +    [    ]  S-5  S-2  S-;  ,  .  '    _    _
-  _    _    _    _    _    _    _    _    _    _    _    
   _    _    _    _             _               _    _ _
 )
 ;;(deflayer symbols-orig
@@ -273,17 +287,45 @@
 ;;  _    S-9    S-0    _    _    _    _    _    _    _    _    
 ;;  _    _    _    _             _               _    _ _
 ;;)
-;;(deflayer sym-nums
-;;  _        _    _    _    _    _    _    _    _    _    _    _    _    _
- ;; _        !    @    #    $    %    ^    &    *    ;    :    _    _    _
-;;  _        {    }    [    ]    ~    \    7    8    9    +    _    _    _
-;;  _        _    _    (    )    `    |    4    5    6    -    =    _    _
-;;  _        <    >    ?    /    _    _    1    2    3    *    _
-;;  _        _    _    _              _              0    .    _    _
-;;)
+
 
 ;; ==========================================
-;; LAYER 5: Navigation & Number Layer
+;; LAYER 5: Number Layer
+;; based on jonas numbers
+;; todo: @u for macro, above 1
+;; todo: repeat key, above 5
+;; ==========================================
+
+(deflayer num-r1
+  _    _    _    _    _    _    _     _    _      _    _    _    _    _
+  _    j    S-=    S-8      f    p    x    w      _    _    _    _    _    _
+  _    6    4        0      2    k    m    3      1    5    7      .    _    _
+  _    ,    _      S-g      8    b    /    9    S-9    S-0  _    S--    _
+  _    _    _        _      _    _    _    _    _    _    _    
+  _    _    _    _             _               _    _ _
+)
+
+
+;; Number and Symbols - LH
+(deflayer num-sym-lh-r1
+  _    _    _    _    _    _    _     _    _      _    _    _    _    _
+  _    _    S-=    S-8    S-1    p    x    _      _    _    _    _    _    _
+  _    6    4        0      2    k    _    3      1    5    7    _    _    _
+  _    _    _      S-g      8    _    /    9    S-9    S-0  _    _    _
+  _    _    _        _      _    _    _    _    _    _    _    
+  _    _    _    _             _               _    _ _
+)
+;; Number and Symbols - RH
+(deflayer num-sym-rh-r1
+  _    _    _    _    _    _    _     _    _      _    _    _    _    _
+  _    _    S-=    S-8    S-1    p    x    _      _    _    _    _    _    _
+  _    6    4        0      2    k    _    3      1    5    7    _    _    _
+  _    _    _      S-g      8    _    /    9    S-9    S-0  _    _    _
+  _    _    _        _      _    _    _    _    _    _    _    
+  _    _    _    _             _               _    _ _
+)
+;; ==========================================
+;; LAYER 6: Navigation & Number Layer
 ;; ==========================================
 (deflayer navigation
   _    _    _    _    _    _    _    _    _    _    _    _    _    _
