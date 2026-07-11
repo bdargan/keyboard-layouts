@@ -38,9 +38,10 @@
 ;;)
 
 (defvar
-      tap-time 150 
-      hold-time 250 
-      hold-time-xs 200 
+      tap-time           150 
+      one-shot-timeout   500
+      hold-time          250 
+      hold-time-xs       200 
       ;; Timing variables for home row mods and chords
       streak-count 3      ;; Number of keys to consider a "typing streak"
       streak-time 325     ;; Max time (ms) window to maintain a streak
@@ -137,10 +138,10 @@
   rpt-sym (tap-hold $tap-time $hold-time rpt (layer-while-held sym-r3)) 
   
   ;; num-sym activate with ralt tap
-  num-sym-r1 (tap-hold-release $tap-time $hold-time (layer-while-held num-sym-r1) ralt)
+  num-sym-r1 (tap-hold-release $tap-timeout $hold-time (one-shot-release-pcancel $one-shot-timeout (layer-while-held num-sym-r1)) ralt)
 
   ;; sym-num activate with lalt tap
-  sym-num-r1 (tap-hold-release $tap-time $hold-time (layer-while-held sym-num-r1) lalt)
+  sym-num-r1 (tap-hold-release $tap-timeout $hold-time (one-shot-release-pcancel $one-shot-timeout (layer-while-held sym-num-r1)) lalt) 
 
   ;; 2. Left Thumb Magic Key on LMet (Fires magic on tap, acts as LMet on hold)
   ;; Add your specific Afterburner fallback 'rpt' macro logic inside your macro rules
@@ -270,7 +271,6 @@
 ;; LAYER 5: Number Layer
 ;; based on jonas numbers
 ;; todo: @u for macro, above 1
-;; todo: repeat key, above 5
 ;; ==========================================
 
 (deflayermap (num-r1)
@@ -302,20 +302,8 @@
 
 )
 
-(deflayermap (num-r2)
 
-)
-
-(deflayer symbols-r2
-  _    _        _      _      _    _       _    _    _    _    _    _    _    
-  _    _        _      _      _    _       _    _    _    _    _    _    _    _ 
-  _    S-`    S-=    S-8    S-1    _     S-6  S-3  S-2  S-6  .    _    _    _ 
-  _    S-\    S-[    S-]      -    \       `  S-/    [    ]    _    _    _   
-  _      ,    S-,    S-.    S-5    _       /  S-7  S-9  S-0  S--    _
-  _    _    _    _                 _               _    _ _
-)
-
-;; left first
+;; initial based on jonas last post, revise 
 (deflayermap (sym-r3)
   q S-`
   w S-=
@@ -346,7 +334,7 @@
   / S-- 
 )
 
-;; Number and Symbols - LH numbers
+;; Number and Symbols - LH numbers - (RH alt trigger)
 (deflayermap num-sym-r1
   q j
   w S-=
@@ -375,7 +363,7 @@
 
 )
 
-;; Symbols / Numbers - RH
+;; Symbols / Numbers - RH (LH alt trigger)
 (deflayermap (sym-num-r1)
   q S-`
   w S-=
@@ -405,7 +393,7 @@
 )
 
 ;; ==========================================
-;; LAYER 6: Navigation & Number Layer
+;; TODO: LAYER 6: Navigation & Mouse
 ;; ==========================================
 (deflayer navigation
   _    _    _    _    _    _    _    _    _    _    _    _    _    _
@@ -417,3 +405,10 @@
 )
 
 
+;; ==========================================
+;; TODO: Workspace
+;; ==========================================
+
+;; ==========================================
+;; TODO: Shortcuts
+;; ==========================================
