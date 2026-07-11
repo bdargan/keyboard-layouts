@@ -39,7 +39,7 @@
 
 (defvar
       tap-time 150 
-      hold-time 200 
+      hold-time 250 
       hold-time-xs 200 
       ;; Timing variables for home row mods and chords
       streak-count 3      ;; Number of keys to consider a "typing streak"
@@ -126,19 +126,21 @@
   to-qwe (layer-switch qwerty)
 
   ;; Tapping outputs ` (backtick). Holding opens the Profile Control Layer.
-  grv-ldr (tap-hold-release $tap-time $hold-time grv (layer-toggle profile-control))
+  grv-ldr (tap-hold-release $tap-time $hold-time grv (layer-while-held profile-control))
 
   ;; Standard Layer Toggles
   ;; todo spc for syms no good for vim, conflict with my ldr 
-  spc-sym (tap-hold-press $tap-time $hold-time spc (layer-toggle symbols-r2))
- ;;spc-sym (tap-hold-press-efficient $tap-time $hold-time spc (layer-toggle symbols-getruer-orig))
+  spc-sym (tap-hold-press $tap-time $hold-time spc (layer-while-held sym-r3))
+ ;;spc-sym (tap-hold-press-efficient $tap-time $hold-time spc (layer-while-held symbols-getruer-orig))
 
-  caps-esc-ctl (tap-hold-release $tap-time $hold-time-xs esc lctl)
-  rpt-sym (tap-hold $tap-time $hold-time rpt (layer-toggle symbols-r2)) 
- 
-  ;; l-num-r-sym activate with ralt tap
+  caps-esc-ctl (tap-hold-release $tap-time $hold-time esc lctl)
+  rpt-sym (tap-hold $tap-time $hold-time rpt (layer-while-held sym-r3)) 
+  
+  ;; num-sym activate with ralt tap
+  num-sym-r1 (tap-hold-release $tap-time $hold-time (layer-while-held num-sym-r1) ralt)
 
-  ;; r-num-l-sym activate with lalt tap
+  ;; sym-num activate with lalt tap
+  sym-num-r1 (tap-hold-release $tap-time $hold-time (layer-while-held sym-num-r1) lalt)
 
   ;; 2. Left Thumb Magic Key on LMet (Fires magic on tap, acts as LMet on hold)
   ;; Add your specific Afterburner fallback 'rpt' macro logic inside your macro rules
@@ -207,7 +209,7 @@
   tab      q    w    f    p    b    j    l    u    y    ;    [    ]    \
   @caps-esc-ctl     @a_col @r_col    @s_col    @t_col    g    m    @n_col    @e_col    @i_col    o '    ret
   lsft       x    c    d    v    z    k    h    ,    .    /    rsft
-  fn lctl  lalt lmet                @spc-sym         @rpt-sym ralt rctl 
+  fn lctl  @sym-num-r1 lmet                @spc-sym         @rpt-sym @num-sym-r1 rctl 
 )
 
 ;; ==========================================
@@ -263,31 +265,6 @@
 ;; 8
 ;; obs, rolls, with ${} and ` not available 
 ;; ==========================================
-(deflayer symbols-r2
-  _    _        _      _      _    _       _    _    _    _    _    _    _    
-  _    _        _      _      _    _       _    _    _    _    _    _    _    _ 
-  _    S-`    S-=    S-8    S-1    _     S-6  S-3  S-2  S-6  .    _    _    _ 
-  _    S-\    S-[    S-]      -    \       `  S-/    [    ]    _    _    _   
-  _      ,    S-,    S-.    S-5    _       /  S-7  S-9  S-0  S--    _
-  _    _    _    _                 _               _    _ _
-)
-(deflayer symbols-getruer-orig
-  _    _    _    _    _    _    _    _    _    _    _    _    _    _
-  _    _ _ _   _    _    _    _    _    _    _    _    _    _ 
-  _    `    S-,    S-.    -    S-\    S-6  S-[  S-]  S-4  S-.    _    _    
-  _    S-1    S-8    /    =    S-7  S-3  S-9  S-0  ;  S-'    _        
-  _    S-`    +    [    ]  S-5  S-2  S-;  ,  .  '    _    _
-  _    _    _    _             _               _    _ _
-)
-;;(deflayer symbols-orig
-;;  _    _    _    _    _    _    _    _    _    _    _    _    _    _
-;;  _    _    _    _    _    _    _    _    _    _    _    _    _    _
-;;  _    {    }    [    ]    S-6  S-5  S-4  S-7  S-\  \    _    _    _
-;;  _    +    -    =    S-8  S-`  S-1  S-2  S-3  S-;  ;    _    _
-;;  _    S-9    S-0    _    _    _    _    _    _    _    _    
-;;  _    _    _    _             _               _    _ _
-;;)
-
 
 ;; ==========================================
 ;; LAYER 5: Number Layer
@@ -296,34 +273,137 @@
 ;; todo: repeat key, above 5
 ;; ==========================================
 
-(deflayer num-r1
-  _    _    _    _    _    _    _     _    _      _    _    _    _    _
-  _    j    S-=    S-8      f    p    x    w      _    _    _    _    _    _
-  _    6    4        0      2    k    m    3      1    5    7      .    _    _
-  _    ,    _      S-g      8    b    /    9    S-9    S-0  _    S--    _
-  _    _    _        _      _    _    _    _    _    _    _    
-  _    _    _    _             _               _    _ _
+(deflayermap (num-r1)
+  q j
+  w S-=
+  e S-8
+  r f
+  t p
+  a 6
+  s 4
+  d 0
+  f 2
+  g k
+  z ,
+  c (multi lshft g)
+  v 8
+
+  y x
+  o rpt
+  j 3
+  k 1
+  l 5
+  ; 7
+  n /
+  m 9
+  , S-9
+  . S-0
+  / S--
+
 )
 
+(deflayermap (num-r2)
 
-;; Number and Symbols - LH
-(deflayer num-sym-lh-r1
-  _    _    _    _    _    _    _     _    _      _    _    _    _    _
-  _    _    S-=    S-8    S-1    p    x    _      _    _    _    _    _    _
-  _    6    4        0      2    k    _    3      1    5    7    _    _    _
-  _    _    _      S-g      8    _    /    9    S-9    S-0  _    _    _
-  _    _    _        _      _    _    _    _    _    _    _    
-  _    _    _    _             _               _    _ _
 )
-;; Number and Symbols - RH
-(deflayer num-sym-rh-r1
-  _    _    _    _    _    _    _     _    _      _    _    _    _    _
-  _    _    S-=    S-8    S-1    p    x    _      _    _    _    _    _    _
-  _    6    4        0      2    k    _    3      1    5    7    _    _    _
-  _    _    _      S-g      8    _    /    9    S-9    S-0  _    _    _
-  _    _    _        _      _    _    _    _    _    _    _    
-  _    _    _    _             _               _    _ _
+
+(deflayer symbols-r2
+  _    _        _      _      _    _       _    _    _    _    _    _    _    
+  _    _        _      _      _    _       _    _    _    _    _    _    _    _ 
+  _    S-`    S-=    S-8    S-1    _     S-6  S-3  S-2  S-6  .    _    _    _ 
+  _    S-\    S-[    S-]      -    \       `  S-/    [    ]    _    _    _   
+  _      ,    S-,    S-.    S-5    _       /  S-7  S-9  S-0  S--    _
+  _    _    _    _                 _               _    _ _
 )
+
+;; left first
+(deflayermap (sym-r3)
+  q S-`
+  w S-=
+  e S-8
+  r S-1    
+  a S-\
+  s S-[
+  d S-]
+  f -
+  g \
+  z ,
+  x S-,
+  c S-.
+  v S-5
+  u S-3
+  i S-2
+  o S-6
+  p .
+  h `
+  j S-/
+  k [
+  l ]
+  ; rpt
+  n /
+  m S-7
+  , S-9
+  . S-0
+  / S-- 
+)
+
+;; Number and Symbols - LH numbers
+(deflayermap num-sym-r1
+  q j
+  w S-=
+  e S-8
+  r f
+  t p
+  a 6
+  s 4
+  d 0
+  f 2
+  g k
+  z ,
+  c (multi lshft g)
+  v 8
+  y x
+  o rpt
+  j 3
+  k 1
+  l 5
+  ; 7
+  n /
+  m 9
+  , S-9
+  . S-0
+  / S--
+
+)
+
+;; Symbols / Numbers - RH
+(deflayermap (sym-num-r1)
+  q S-`
+  w S-=
+  e S-8
+  r S-1    
+  a S-\
+  s S-[
+  d S-]
+  f -
+  g \
+  z ,
+  x S-,
+  c S-.
+  v S-5
+
+  y x
+  o rpt
+  j 3
+  k 1
+  l 5
+  ; 7
+  n /
+  m 9
+  , S-9
+  . S-0
+  / S--
+)
+
 ;; ==========================================
 ;; LAYER 6: Navigation & Number Layer
 ;; ==========================================
