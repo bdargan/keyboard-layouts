@@ -2,7 +2,7 @@
   process-unmapped-keys yes ;; Vital for accurate multi-layout tracking
   concurrent-tap-hold     yes
   allow-hardware-repeat   no
-  chords-v2-min-idle 20    
+  chords-v2-min-idle 10 
   ;; ** For MacOS **
   ;; input  (iokit-name "my-keyboard-product-string")
   ;; output (kext)
@@ -31,14 +31,9 @@
 ;; - 250 represents the elapsed `time` since the key specified above was pressed and it should be adjusted to your typing speed.
 ;; - `tap-hold-release-timeout` triggers a modifier while held only if another key is pressed *and* released before the timeout, after which the expected repeat action for the key would trigger instead.
 
-;;(defchords ch_jk 50
-;;  (k  ) k
-;; (  j) j
-;;  (k j) esc
-;;)
 
 (defvar
-      tap-time           150 
+      tap-time           200 
       one-shot-timeout   500
       hold-time          250 
       hold-time-xs       200 
@@ -47,7 +42,8 @@
       streak-time 325     ;; Max time (ms) window to maintain a streak
       tap-timeout 200     ;; Max time (ms) for a tap to be recognized
       hold-timeout 250    ;; Time (ms) to wait before a hold is recognized
-      chord-timeout 50    ;; Window (ms) to press keys together for a chord
+      chord-timeout 20    ;; Window (ms) to press keys together for a chord
+      chord-timeout-xl 50 ;; Window (ms) to press keys together for a chord
 )
 
 ;; 'flowtap' checks if you are typing fast. 
@@ -70,6 +66,31 @@
   )
 )
 
+
+(defalias switch-layer-num-r1 (switch
+     ((base-layer colemak-dh)) (layer-switch num-r1) break
+    ((base-layer num-r1)) (layer-switch colemak-dh) break
+                 () (layer-switch num-r1) break
+  )
+)
+
+;;ch_dblquote 50,   
+(defchordsv2 
+  (s f) S-' $chord-timeout all-released  ()
+  (j l) ' $chord-timeout all-released  ()
+  (i o) bspc $chord-timeout all-released  ()
+  (spc rmet) @switch-layer-num-r1 $chord-timeout-xl all-released  ()
+  ;;(j k l ;) (multi S-; w) $tap-time first-release  ()
+)
+
+
+;; chords legacy
+;;(defchords ch_dblquote 50
+;;  (s  ) s
+;; (  f) f
+;;  (s f) S-' 
+;;)
+
 ;;; ==========================================
 ;; 🧠 THE ADAPTIVE STATE MACHINE (THE MAGIC)
 ;; ==========================================
@@ -90,7 +111,7 @@
     ;;() spc break
   )
   )
-
+;; disabled home row mods
 ;;(deflayermap (colemak-dh)
 ;; a (t! charmod a lmet)
 ;; s (t! charmod s lsft)
@@ -132,9 +153,8 @@
   ;; Standard Layer Toggles
   ;; todo spc for syms no good for vim, conflict with my ldr 
   spc-sym (tap-hold-press $tap-time $hold-time spc (layer-while-held sym-r3))
- ;;spc-sym (tap-hold-press-efficient $tap-time $hold-time spc (layer-while-held symbols-getruer-orig))
 
-  caps-esc-ctl (tap-hold-release $tap-time $hold-time esc lctl)
+  caps-esc-ctl (tap-hold-press $tap-time $hold-time esc lctl)
   rpt-sym (tap-hold $tap-time $hold-time rpt (layer-while-held sym-r3)) 
   
   ;; num-sym activate with ralt tap
@@ -151,19 +171,19 @@
   rpt-met (tap-hold $tap-time $hold-time rpt rmet)
 
   ;; =========================================================================
-  ;; 1. Colemak-DH Home-Row Mods 
+  ;; 1. Colemak-DH Home-Row Mods  - removed
   ;; Home-row SGAC: Shift, Gui/Cmd, Alt, Control
   ;; Home-row letters: A S R T | N E I O
   ;; =========================================================================
 
-  a_col (t! charmod a lsft )
-  r_col (t! charmod r lmet)
-  s_col (t! charmod s lalt ) ;; Left Cmd
-  t_col (t! charmod t lctl )
-  n_col (t! charmod n rctl )
-  e_col (t! charmod e ralt ) 
-  i_col (t! charmod i rmet );; Right Cmd
-  o_col (t! charmod o rsft )
+ ;; a_col (t! charmod a lsft )
+ ;; r_col (t! charmod r lmet)
+ ;; s_col (t! charmod s lalt ) ;; Left Cmd
+ ;; t_col (t! charmod t lctl )
+ ;; n_col (t! charmod n rctl )
+ ;; e_col (t! charmod e ralt ) 
+ ;; i_col (t! charmod i rmet );; Right Cmd
+ ;; o_col (t! charmod o rsft )
 
   ;; 2. QWERTY Home-Row Mods
   a_qwe (t! charmod a lsft )
@@ -185,8 +205,6 @@
   a_stu (t! charmod a rmet)
   i_stu (t! charmod i rsft)
 
-  ;; Fix for Arc Browser shortcuts - the use keycodes, use lmet to get these
-  ;;ct_qwe (cmd t)  ;; Triggers Cmd+T in QWERTY (bound to physical T key
 )
 
 ;; ==========================================
@@ -208,7 +226,7 @@
   esc      f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12
   @grv-ldr 1    2    3    4    5    6    7    8    9    0    -    =    bspc
   tab      q    w    f    p    b    j    l    u    y    ;    [    ]    \
-  @caps-esc-ctl     @a_col @r_col    @s_col    @t_col    g    m    @n_col    @e_col    @i_col    o '    ret
+  @caps-esc-ctl     a     r    s t  g    m    n    e    i o '    ret
   lsft       x    c    d    v    z    k    h    ,    .    /    rsft
   fn lctl  @sym-num-r1 lmet                @spc-sym         @rpt-sym @num-sym-r1 rctl 
 )
@@ -235,7 +253,7 @@
 ;; ==========================================
 (deflayer magic-sturdy
   esc          f1   f2             f3        f4   f5   f6   f7   f8   f9   f10  f11  f12
-  @grv-ldr      1    2              3         4    5    6    7    8    9    0     -    =    bspc
+  @grv-ldr      1    2              3         4    5    6    7    8    9    0     -    @eq-main    bspc
   tab           v    m              l         c    p    b    u    o    ,    .     [    ]    \
   @caps-esc-ctl s    @t_stu    @r_stu    @d_stu    y    f    n    e    a    i     '  ret
   lsft          x         k         j         g    w    z    h    /    S-/  q  rsft
@@ -268,7 +286,7 @@
 ;; ==========================================
 
 ;; ==========================================
-;; LAYER 5: Number Layer
+;; LAYER 5: Number Layer - trigger, spc+rmet
 ;; based on jonas numbers
 ;; todo: @u for macro, above 1
 ;; ==========================================
@@ -317,7 +335,8 @@
   z ,
   x S-,
   c S-.
-  v S-5
+  v S-4
+  b S-5
   u S-3
   i S-2
   o S-6
@@ -408,7 +427,64 @@
 ;; ==========================================
 ;; TODO: Workspace
 ;; ==========================================
+;; ==========================================
+;; TODO: Media
+;; ==========================================
 
 ;; ==========================================
-;; TODO: Shortcuts
+;; Shortcuts - todo trigger
+;; Got a mixture of qwerty locations and colemak-dh
 ;; ==========================================
+(deflayermap (shortcuts)
+q C-q
+w C-w
+e C-e
+r C-r
+t C-p
+a C-a
+s C-r
+d C-s
+f C-t
+g C-g
+b C-z
+z C-x
+c C-d
+x C-c
+v C-v
+)
+(defalias
+  ;; --- EQUAL KEY LOGIC (=, ==, ===) ---
+  eq-long (tap-hold 0 300 (macro-release-cancel 50 = 50 =) (macro-release-cancel 50 = 50 = 50 =))
+  eq-main (tap-hold 0 150 = @eq-long)
+
+  ;; --- HYPHEN KEY LOGIC (-, --, ---) ---
+  hyp-long (tap-hold 0 300 (macro - -) (macro - - -))
+  hyp-main (tap-hold 0 200 - @hyp-long)
+
+  ;; --- PERIOD KEY LOGIC (., .., ...) ---
+  dot-long (tap-hold 0 300 (macro . .) (macro . . .))
+  dot-main (tap-hold 0 200 . @dot-long)
+)
+
+;; ==========================================
+;; TODO: macros
+;; ==========================================
+(defseq
+    dotcom (. S-3)
+    dotorg (. S-4)
+
+    ;;     The shifted letters in parentheses means a single press of lsft
+    ;;     must remain held while both h and then s are pressed.
+    ;;     This is not the same as S-h S-s, which means that the lsft key
+    ;;     must be released and repressed between the h and s presses.
+    https (S-(h s))
+    vsplit (s d)
+    hsplit (s x)
+)
+(defvirtualkeys
+    dotcom (macro . c o m)
+    dotorg (macro . o r g)
+    https (macro h t t p s S-; / /)
+    vsplit (macro S-; v s p l i t ret)
+    hsplit (macro S-; h s p l i t ret)
+)
