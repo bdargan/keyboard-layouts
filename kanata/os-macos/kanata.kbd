@@ -43,6 +43,7 @@
       tap-timeout 200     ;; Max time (ms) for a tap to be recognized
       hold-timeout 250    ;; Time (ms) to wait before a hold is recognized
       chord-timeout 20    ;; Window (ms) to press keys together for a chord
+      chord-timeout-l 30    ;; Window (ms) to press keys together for a chord
       chord-timeout-xl 50 ;; Window (ms) to press keys together for a chord
 )
 
@@ -66,19 +67,21 @@
   )
 )
 
-
+;; num to colemak-dh toggle
 (defalias switch-layer-num-r1 (switch
      ((base-layer colemak-dh)) (layer-switch num-r1) break
     ((base-layer num-r1)) (layer-switch colemak-dh) break
                  () (layer-switch num-r1) break
   )
+  ;; Dedicated alias to handle the exit logic
+  exit-to-colemak (layer-switch colemak-dh)
 )
 
 ;;ch_dblquote 50,   
 (defchordsv2 
   (s f) S-' $chord-timeout all-released  ()
   (j l) ' $chord-timeout all-released  ()
-  (i o) bspc $chord-timeout all-released  ()
+  (i o) bspc $chord-timeout-l all-released  ()
   (spc rmet) @switch-layer-num-r1 $chord-timeout-xl all-released  ()
   ;;(j k l ;) (multi S-; w) $tap-time first-release  ()
 )
@@ -292,6 +295,7 @@
 ;; ==========================================
 
 (deflayermap (num-r1)
+  caps @caps-esc-ctl
   q j
   w S-=
   e S-8
@@ -303,12 +307,14 @@
   f 2
   g k
   z ,
+  x . 
   c (multi lshft g)
   v 8
 
   y x
   o rpt
   j 3
+  h S-4
   k 1
   l 5
   ; 7
@@ -317,7 +323,7 @@
   , S-9
   . S-0
   / S--
-
+  ___ (multi _ @exit-to-colemak)
 )
 
 
@@ -326,7 +332,8 @@
   q S-`
   w S-=
   e S-8
-  r S-1    
+  r S-1
+  t S-;
   a S-\
   s S-[
   d S-]
