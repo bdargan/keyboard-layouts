@@ -10,7 +10,7 @@
   ;; If any key was pressed within 150ms, resolve tap-hold as tap immediately.
   ;; Prevents accidental modifier activation during fast typing.
   tap-hold-require-prior-idle 150
-  movemouse-inherit-accel-state yes
+  movemouse-inherit-accel-state yes 
   movemouse-smooth-diagonals yes
   mouse-movement-key mvmt
 )
@@ -38,6 +38,7 @@
 
 (defvar
       tap-time           200 
+      tap-time-s         150 
       one-shot-timeout   500
       hold-time          250 
       hold-time-xs       200 
@@ -146,7 +147,7 @@
 ;;l (t! charmod l ralt)
 ;;; (t! charmod ; rctl)
 ;;)
-
+    
 (defalias
   mse (layer-while-held mouse)
 )
@@ -166,15 +167,22 @@
   mwl (mwheel-left 50 120)
   mwr (mwheel-right 50 120)
 
-  ms↑ (movemouse-up 4 4)
-  ms← (movemouse-left 4 4)
-  ms↓ (movemouse-down 4 4)
-  ms→ (movemouse-right 4 4)
+  ms↑ (movemouse-up 4    5)
+  ms← (movemouse-left 4  5)
+  ms↓ (movemouse-down 4  5)
+  ms→ (movemouse-right 4 5)
 
-  ma↑ (movemouse-accel-up 1 1000 1 5)
-  ma← (movemouse-accel-left 1 1000 1 5)
-  ma↓ (movemouse-accel-down 1 1000 1 5)
-  ma→ (movemouse-accel-right 1 1000 1 5)
+;; ma on mac, >= 15 
+  ma↑ (movemouse-accel-up    16 200 2 40)
+  ma← (movemouse-accel-left  16 200 2 40)
+  ma↓ (movemouse-accel-down  16 200 2 40)
+  ma→ (movemouse-accel-right 16 200 2 40)
+
+;; musclememory 
+;;  ma↑ (movemouse-accel-up 10 1000 1 9)
+;;  ma← (movemouse-accel-left 10 1000 1 9)
+;;  ma↓ (movemouse-accel-down 10 1000 1 9)
+;;  ma→ (movemouse-accel-right 10 1000 1 9)
 )
 
 
@@ -192,7 +200,7 @@
   ;; todo spc for syms no good for vim, conflict with my ldr 
   spc-sym (tap-hold-press $tap-time $hold-time spc (layer-while-held sym-r3))
 
-  caps-esc-ctl (tap-hold-press $tap-time $hold-time esc lctl)
+  caps-esc-ctl (tap-hold-press $tap-time-s $hold-time esc lctl)
   ec_dtm  (tap-dance $tap-time (@caps-esc-ctl @mse))
 
   rpt-sym (tap-hold $tap-time $hold-time rpt (layer-while-held sym-r3)) 
@@ -432,19 +440,33 @@
   _    _    _    _    _    _    _    _    _    _    _    
   _    _    _    _             _               _    _ _
 )
- z mute
-  x vold
-  c volu
+;; z mute
+;; x vold
+;; c volu
 
 (deflayermap (mouse)
+y @ms←
+u @ms↓
 i @ms↑
-j @mwd
-k @ms←
-l @ms↓
-; @ms→
+o @ms→
+
+h @ma← 
+j @ma↓ 
+k @ma↑
+l @ma→ 
+
+n @mwl
+m @mwd
+, @mwu
+. @mwr
 )
 ;;_    _    @vsl @vsl _    _    @mwu @mwl @ms↑ @mwr _    _    _    _
 ;;_    _    mrgt mmid mlft _    @mwd @ms← @ms↓ @ms→ _    _    _
+;; vs. musclememory
+;;mbck mlft mmid mrgt mfwd  @ms← @ms↓ @ms↑ @ms→ mltp
+;;mbtp mltp mmtp mrtp mftp  @ma← @ma↓ @ma↑ @ma→ mltp   
+;;bck  fwd  @fst @sm  XX    @mwl @mwd @mwu @mwr mltp
+
 
 ;; ==========================================
 ;; TODO: Workspace
