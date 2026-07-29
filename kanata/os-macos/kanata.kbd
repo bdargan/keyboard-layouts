@@ -167,22 +167,17 @@
   mwl (mwheel-left 50 120)
   mwr (mwheel-right 50 120)
 
-  ms↑ (movemouse-up 4    5)
-  ms← (movemouse-left 4  5)
-  ms↓ (movemouse-down 4  5)
+  ms↑ (movemouse-up 4 5)
+  ms← (movemouse-left 4 5)
+  ms↓ (movemouse-down 4 5)
   ms→ (movemouse-right 4 5)
 
-;; ma on mac, >= 15 
+;; ma on mac, >= 15. for 60mHz screens
   ma↑ (movemouse-accel-up    16 200 2 40)
   ma← (movemouse-accel-left  16 200 2 40)
   ma↓ (movemouse-accel-down  16 200 2 40)
   ma→ (movemouse-accel-right 16 200 2 40)
 
-;; musclememory 
-;;  ma↑ (movemouse-accel-up 10 1000 1 9)
-;;  ma← (movemouse-accel-left 10 1000 1 9)
-;;  ma↓ (movemouse-accel-down 10 1000 1 9)
-;;  ma→ (movemouse-accel-right 10 1000 1 9)
 )
 
 
@@ -430,7 +425,7 @@
 )
 
 ;; ==========================================
-;; LAYER 6: Navigation & Mouse
+;; LAYER 6: Navigation
 ;; ==========================================
 (deflayer navigation
   _    _    _    _    _    _    _    _    _    _    _    _    _    _
@@ -445,21 +440,35 @@
 ;; c volu
 
 (deflayermap (mouse)
-y @ms←
-u @ms↓
-i @ms↑
-o @ms→
+ ;; --- Left Hand: Precision Modifiers ---
+a @fst   ;; Hold to make linear keys go fast (200%)
+s @slw   ;; Hold for standard Sniper mode (50%)
+d @vsl   ;; Hold for ultra-precise Video/Design work (25%)
 
-h @ma← 
-j @ma↓ 
-k @ma↑
-l @ma→ 
+;; --- Right Hand: Macro Acceleration (Fixed curves, unaffected by modifiers) ---
+y @ma←
+u @ma↓
+i @ma↑
+o @ma→
 
+;; --- Right Hand: Linear Micro Movements (Affected by a, s, d modifiers) ---
+h @ms← 
+j @ms↓ 
+k @ms↑
+l @ms→ 
+
+;; --- Right Hand: Scrolling ---
 n @mwl
 m @mwd
 , @mwu
 . @mwr
+
+;; --- Left Hand: Standard Mouse Buttons ---
+e mlft       ;; Middle finger = Left Click
+r mrgt       ;; Index finger = Right Click
+;; Ring finger = Middle Click
 )
+
 ;;_    _    @vsl @vsl _    _    @mwu @mwl @ms↑ @mwr _    _    _    _
 ;;_    _    mrgt mmid mlft _    @mwd @ms← @ms↓ @ms→ _    _    _
 ;; vs. musclememory
