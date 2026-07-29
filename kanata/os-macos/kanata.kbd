@@ -10,7 +10,11 @@
   ;; If any key was pressed within 150ms, resolve tap-hold as tap immediately.
   ;; Prevents accidental modifier activation during fast typing.
   tap-hold-require-prior-idle 150
+  movemouse-inherit-accel-state yes
+  movemouse-smooth-diagonals yes
+  mouse-movement-key mvmt
 )
+
 ;; spc for sym, clash with nvim ldr
 ;; Source layer - defines which keys are intercepted
 (defsrc
@@ -143,7 +147,38 @@
 ;;; (t! charmod ; rctl)
 ;;)
 
-    
+(defalias
+  mse (layer-while-held mouse)
+)
+
+(defalias
+  ;; mouse or escape
+  moe (tap-hold $tap-time $hold-time esc @mse)
+)
+
+(defalias
+  fst (movemouse-speed 200)
+  slw (movemouse-speed 50)
+  vsl (movemouse-speed 25)
+
+  mwu (mwheel-up 50 120)
+  mwd (mwheel-down 50 120)
+  mwl (mwheel-left 50 120)
+  mwr (mwheel-right 50 120)
+
+  ms↑ (movemouse-up 4 4)
+  ms← (movemouse-left 4 4)
+  ms↓ (movemouse-down 4 4)
+  ms→ (movemouse-right 4 4)
+
+  ma↑ (movemouse-accel-up 1 1000 1 5)
+  ma← (movemouse-accel-left 1 1000 1 5)
+  ma↓ (movemouse-accel-down 1 1000 1 5)
+  ma→ (movemouse-accel-right 1 1000 1 5)
+)
+
+
+ 
 (defalias
   ;; Layout Profile Changers (Linked to numbers 1, 2, 3 inside the profile-control layer)
   to-col (layer-switch colemak-dh)
@@ -158,6 +193,8 @@
   spc-sym (tap-hold-press $tap-time $hold-time spc (layer-while-held sym-r3))
 
   caps-esc-ctl (tap-hold-press $tap-time $hold-time esc lctl)
+  ec_dtm  (tap-dance $tap-time (@caps-esc-ctl @mse))
+
   rpt-sym (tap-hold $tap-time $hold-time rpt (layer-while-held sym-r3)) 
   
   ;; num-sym activate with ralt tap
@@ -173,40 +210,6 @@
   ;; 3. Right Thumb Repeat Key on RMet (Fires repeat on tap, acts as RMet on hold)
   rpt-met (tap-hold $tap-time $hold-time rpt rmet)
 
-  ;; =========================================================================
-  ;; 1. Colemak-DH Home-Row Mods  - removed
-  ;; Home-row SGAC: Shift, Gui/Cmd, Alt, Control
-  ;; Home-row letters: A S R T | N E I O
-  ;; =========================================================================
-
- ;; a_col (t! charmod a lsft )
- ;; r_col (t! charmod r lmet)
- ;; s_col (t! charmod s lalt ) ;; Left Cmd
- ;; t_col (t! charmod t lctl )
- ;; n_col (t! charmod n rctl )
- ;; e_col (t! charmod e ralt ) 
- ;; i_col (t! charmod i rmet );; Right Cmd
- ;; o_col (t! charmod o rsft )
-
-  ;; 2. QWERTY Home-Row Mods
-  a_qwe (t! charmod a lsft )
-  s_qwe (t! charmod s lmet )
-  d_qwe (t! charmod d lalt ) ;; Left Cmd
-  f_qwe (t! charmod f lctl )
-  j_qwe (t! charmod j rctl )
-  k_qwe (t! charmod k ralt )
-  l_qwe (t! charmod l rmet ) ;; Right Cmd
-  sem_q (t! charmod ; rsft )
-
-  ;; 3. Sturdy Home-Row Mods (Home row: S T R D  |  N E A I) 
-  s_stu (t! charmod s lsft)
-  t_stu (t! charmod t lmet)
-  r_stu (t! charmod r lalt) ;; Left Cmd
-  d_stu (t! charmod d lctl)
-  n_stu (t! charmod n rctl)
-  e_stu (t! charmod e ralt) ;; Right Cmd
-  a_stu (t! charmod a rmet)
-  i_stu (t! charmod i rsft)
 
 )
 
@@ -217,7 +220,7 @@
   esc      f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12
   @grv-ldr 1    2    3    4    5    6    7    8    9    0    -    =    bspc
   tab      q    w    e    r    t    y    u    i    o    p    [    ]    \
-  @caps-esc-ctl a @s_qwe @d_qwe @f_qwe g    h    @j_qwe @k_qwe @l_qwe ; '    ret
+  @caps-esc-ctl a s d f g    h    j k l ; '    ret
   lsft     z    x    c    v    b    n    m    ,    .    /    rsft
   fn       lctl lalt lmet          @spc-sym        rmet ralt rctl
 )
@@ -229,9 +232,9 @@
   esc      f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12
   @grv-ldr 1    2    3    4    5    6    7    8    9    0    -    =    bspc
   tab      q    w    f    p    b    j    l    u    y    ;    [    ]    \
-  @caps-esc-ctl     a     r    s t  g    m    n    e    i o '    ret
+  @ec_dtm  a   r    s t  g    m    n    e    i o '    ret
   lsft       x    c    d    v    z    k    h    ,    .    /    rsft
-  fn lctl  @sym-num-r1 lmet                @spc-sym         @rpt-sym @num-sym-r1 rctl 
+  @moe lctl  @sym-num-r1 lmet                @spc-sym         @rpt-sym @num-sym-r1 rctl 
 )
 
 ;; ==========================================
@@ -258,7 +261,7 @@
   esc          f1   f2             f3        f4   f5   f6   f7   f8   f9   f10  f11  f12
   @grv-ldr      1    2              3         4    5    6    7    8    9    0     -    @eq-main    bspc
   tab           v    m              l         c    p    b    u    o    ,    .     [    ]    \
-  @caps-esc-ctl s    @t_stu    @r_stu    @d_stu    y    f    n    e    a    i     '  ret
+  @caps-esc-ctl s    t    r    d    y    f    n    e    a    i     '  ret
   lsft          x         k         j         g    w    z    h    /    S-/  q  rsft
   fn       lctl lalt @mgc-met          @spc-sym @rpt-met ralt rctl
 )
@@ -361,7 +364,7 @@
 )
 
 ;; Number and Symbols - LH numbers - (RH alt trigger)
-(deflayermap num-sym-r1
+(deflayermap (num-sym-r1)
   q j
   w S-=
   e S-8
@@ -419,7 +422,7 @@
 )
 
 ;; ==========================================
-;; TODO: LAYER 6: Navigation & Mouse
+;; LAYER 6: Navigation & Mouse
 ;; ==========================================
 (deflayer navigation
   _    _    _    _    _    _    _    _    _    _    _    _    _    _
@@ -429,7 +432,19 @@
   _    _    _    _    _    _    _    _    _    _    _    
   _    _    _    _             _               _    _ _
 )
+ z mute
+  x vold
+  c volu
 
+(deflayermap (mouse)
+i @ms↑
+j @mwd
+k @ms←
+l @ms↓
+; @ms→
+)
+;;_    _    @vsl @vsl _    _    @mwu @mwl @ms↑ @mwr _    _    _    _
+;;_    _    mrgt mmid mlft _    @mwd @ms← @ms↓ @ms→ _    _    _
 
 ;; ==========================================
 ;; TODO: Workspace
@@ -437,7 +452,7 @@
 ;; ==========================================
 ;; TODO: Media
 ;; ==========================================
-
+;; mute, volume up and down!
 ;; ==========================================
 ;; Shortcuts - todo trigger
 ;; Got a mixture of qwerty locations and colemak-dh
