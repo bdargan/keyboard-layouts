@@ -162,10 +162,10 @@
   slw (movemouse-speed 50)
   vsl (movemouse-speed 25)
 
-  mwu (mwheel-up 50 120)
-  mwd (mwheel-down 50 120)
-  mwl (mwheel-left 50 120)
-  mwr (mwheel-right 50 120)
+  mwu (mwheel-up 50 60)
+  mwd (mwheel-down 50 60)
+  mwl (mwheel-left 50 60)
+  mwr (mwheel-right 50 60)
 
   ms↑ (movemouse-up 4 5)
   ms← (movemouse-left 4 5)
@@ -218,6 +218,7 @@
 
 ;; ==========================================
 ;; BASE LAYER 1: default layer Pure QWERTY (Pass-Through Profile)
+;; Pass-Through allows fallback for troubleshooting, split keyboards with own mapping and deflayermap for clarity
 ;; ==========================================
 (deflayer qwerty
   esc      f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12
