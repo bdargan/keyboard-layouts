@@ -39,7 +39,12 @@
 (defvar
       tap-time           200 
       tap-time-s         150 
-      one-shot-timeout   500
+      old-thumb  290
+      hold-index  200
+      hold-middle 230
+      hold-ring   260
+      hold-pinky  290
+      one-shot-timeout   300
       hold-time          250 
       hold-time-xs       200 
       ;; Timing variables for home row mods and chords
@@ -81,23 +86,31 @@
   ;; Dedicated alias to handle the exit logic
   exit-to-colemak (layer-switch colemak-dh)
 )
+(defalias switch-layer-mouse (switch
+     ((base-layer colemak-dh)) (layer-switch mouse-layer) break
+    ((base-layer mouse-layer)) (layer-switch colemak-dh) break
+                 () (layer-switch mouse-layer) break
+  )
+)
 
-;;ch_dblquote 50,   
+;; Layer Trigger ideas
+;;  (spc v) (layer-while-held system) 300 all-released ()    ;; system layer
+;;  (spc m) (layer-while-held system) 300 all-released ()    ;; system layer
+;;  (lalt ralt) (layer-switch symb-flat) 500 all-released ()    ;; symbols layer
+
 (defchordsv2 
-  (s f) S-' $chord-timeout all-released  ()
-  (j l) ' $chord-timeout all-released  ()
+  (lalt ralt) @switch-layer-num-r1 150 first-release  ()     ;; numbers layer toggle - exit any other key pressed
+  (spc rmet) @switch-layer-num-r1 $chord-timeout-xl all-released  ()   ;; to symbols layer - while held
+  (lsft rsft) @switch-layer-mouse $chord-timeout-xl all-released ()        ;; mouse-layer - now working well
+  ;;
+  ;; =================================================================
+  ;;
+  (s f) S-' $chord-timeout all-released  ()                               ;; double quotes
+  (j l) ' $chord-timeout all-released  ()                                 ;; single quotes
   (i o) bspc $chord-timeout-l all-released  ()
-  (spc rmet) @switch-layer-num-r1 $chord-timeout-xl all-released  ()
   ;;(j k l ;) (multi S-; w) $tap-time first-release  ()
 )
 
-
-;; chords legacy
-;;(defchords ch_dblquote 50
-;;  (s  ) s
-;; (  f) f
-;;  (s f) S-' 
-;;)
 
 ;;; ==========================================
 ;; 🧠 THE ADAPTIVE STATE MACHINE (THE MAGIC)
@@ -149,7 +162,7 @@
 ;;)
     
 (defalias
-  mse (layer-while-held mouse)
+  mse (layer-while-held mouse-layer)
 )
 
 (defalias
@@ -195,16 +208,17 @@
   ;; todo spc for syms no good for vim, conflict with my ldr 
   spc-sym (tap-hold-press $tap-time $hold-time spc (layer-while-held sym-r3))
 
-  caps-esc-ctl (tap-hold-press $tap-time-s $hold-time esc lctl)
-  ec_dtm  (tap-dance $tap-time (@caps-esc-ctl @mse))
+  esc-ctl (tap-hold-press $tap-time-s $hold-time esc lctl)
+  ;; ec_dtm  (tap-dance $tap-time (@esc-ctl @mse))
 
   rpt-sym (tap-hold $tap-time $hold-time rpt (layer-while-held sym-r3)) 
   
-  ;; num-sym activate with ralt tap
-  num-sym-r1 (tap-hold-release $tap-timeout $hold-time (one-shot-release-pcancel $one-shot-timeout (layer-while-held num-sym-r1)) ralt)
+  ;; num-sym activate with rctl tap
+  num-sym-r1 (tap-hold-release $tap-timeout $hold-time (one-shot-release-pcancel $one-shot-timeout (layer-while-held num-sym-r1)) rctl)
 
-  ;; sym-num activate with lalt tap
-  sym-num-r1 (tap-hold-release $tap-timeout $hold-time (one-shot-release-pcancel $one-shot-timeout (layer-while-held sym-num-r1)) lalt) 
+  ;; sym-num activates when holding lctl, lctl fires when tapped
+  sym-num-r1 (tap-hold-release $tap-timeout $hold-time (one-shot-release-pcancel $one-shot-timeout (layer-while-held sym-num-r1)) lctl) 
+
 
   ;; 2. Left Thumb Magic Key on LMet (Fires magic on tap, acts as LMet on hold)
   ;; Add your specific Afterburner fallback 'rpt' macro logic inside your macro rules
@@ -224,7 +238,7 @@
   esc      f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12
   @grv-ldr 1    2    3    4    5    6    7    8    9    0    -    =    bspc
   tab      q    w    e    r    t    y    u    i    o    p    [    ]    \
-  @caps-esc-ctl a s d f g    h    j k l ; '    ret
+  @esc-ctl a s d f g    h    j k l ; '    ret
   lsft     z    x    c    v    b    n    m    ,    .    /    rsft
   fn       lctl lalt lmet          @spc-sym        rmet ralt rctl
 )
@@ -236,11 +250,11 @@
   esc      f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12
   @grv-ldr 1    2    3    4    5    6    7    8    9    0    -    =    bspc
   tab      q    w    f    p    b    j    l    u    y    ;    [    ]    \
-  @ec_dtm  a   r    s t  g    m    n    e    i o '    ret
-  lsft       x    c    d    v    z    k    h    ,    .    /    rsft
-  @moe lctl  @sym-num-r1 lmet                @spc-sym         @rpt-sym @num-sym-r1 rctl 
+  @esc-ctl   a   r    s t  g    m    n    e    i o '    ret lsft       x    c    d    v    z    k    h    ,    .    /    rsft
+  @mse @sym-num-r1 lalt lmet                @spc-sym         @rpt-sym ralt @sym-num-r1
 )
 
+;;  
 ;; ==========================================
 ;; Original magic-sturdy from icelaks - 
 ;; ==========================================
@@ -265,7 +279,7 @@
   esc          f1   f2             f3        f4   f5   f6   f7   f8   f9   f10  f11  f12
   @grv-ldr      1    2              3         4    5    6    7    8    9    0     -    @eq-main    bspc
   tab           v    m              l         c    p    b    u    o    ,    .     [    ]    \
-  @caps-esc-ctl s    t    r    d    y    f    n    e    a    i     '  ret
+  @esc-ctl s    t    r    d    y    f    n    e    a    i     '  ret
   lsft          x         k         j         g    w    z    h    /    S-/  q  rsft
   fn       lctl lalt @mgc-met          @spc-sym @rpt-met ralt rctl
 )
@@ -276,12 +290,12 @@
 (deflayer profile-control
   _         _       _       _   _    _    _    _    _    _    _    _    _
   _   @to-qwe @to-col @to-str   _    _    _    _    _    _    _    _    _    _
-  _    _       _       _        _    _    _    _    _    _    _    _    _    _
+  lrld    _       _       _        _    _    _    _    _    _    _    _    _    _
   lrld    _       lrld _        _    _    _    _    _    _    _    _    _
   _       _       _       _       _    _    _    _    _    _    _    _ 
   _       _       _       _            _              _    _  _
 )
-
+;; 
 ;; ==========================================
 ;; LAYER 4: The Programming Symbol Layer
 ;; r2 based on jonas post 5, will revise from then. 
@@ -302,7 +316,7 @@
 ;; ==========================================
 
 (deflayermap (num-r1)
-  caps @caps-esc-ctl
+  caps @esc-ctl
   q j
   w S-=
   e S-8
@@ -440,7 +454,7 @@
 ;; x vold
 ;; c volu
 
-(deflayermap (mouse)
+(deflayermap (mouse-layer)
  ;; --- Left Hand: Precision Modifiers ---
 a @fst   ;; Hold to make linear keys go fast (200%)
 s @slw   ;; Hold for standard Sniper mode (50%)
@@ -468,6 +482,9 @@ m @mwd
 e mlft       ;; Middle finger = Left Click
 r mrgt       ;; Index finger = Right Click
 ;; Ring finger = Middle Click
+
+caps  @exit-to-colemak
+;;___ (multi _ @exit-to-colemak)
 )
 
 ;;_    _    @vsl @vsl _    _    @mwu @mwl @ms↑ @mwr _    _    _    _
