@@ -99,7 +99,7 @@
 ;;  (lalt ralt) (layer-switch symb-flat) 500 all-released ()    ;; symbols layer
 
 (defchordsv2 
-  (lalt ralt) @switch-layer-num-r1 150 first-release  ()     ;; numbers layer toggle - exit any other key pressed
+  (lctl spc) @switch-layer-num-r1 150 first-release  ()     ;; numbers layer toggle - exit any other key pressed
   (spc rmet) @switch-layer-num-r1 $chord-timeout-xl all-released  ()   ;; to symbols layer - while held
   (lsft rsft) @switch-layer-mouse $chord-timeout-xl all-released ()        ;; mouse-layer - now working well
   ;;
@@ -206,13 +206,14 @@
 
   ;; Standard Layer Toggles
   ;; todo spc for syms no good for vim, conflict with my ldr 
-  spc-sym (tap-hold-press $tap-time $hold-time spc (layer-while-held sym-r3))
+  spc-mo (tap-hold-press $tap-time $hold-time spc (layer-while-held num-r1))
 
   esc-ctl (tap-hold-press $tap-time-s $hold-time esc lctl)
   ;; ec_dtm  (tap-dance $tap-time (@esc-ctl @mse))
 
   rpt-sym (tap-hold $tap-time $hold-time rpt (layer-while-held sym-r3)) 
-  
+ 
+ ;; avoid this
   ;; num-sym activate with rctl tap
   num-sym-r1 (tap-hold-release $tap-timeout $hold-time (one-shot-release-pcancel $one-shot-timeout (layer-while-held num-sym-r1)) rctl)
 
@@ -231,8 +232,8 @@
 )
 
 ;; ==========================================
-;; BASE LAYER 1: default layer Pure QWERTY (Pass-Through Profile)
-;; Pass-Through allows fallback for troubleshooting, split keyboards with own mapping and deflayermap for clarity
+;; BASE LAYER 1: default layer Pure QWERTY (for Pass-Through Bluetooth Profile)
+;; Pass-Through allows fallback for troubleshooting, split keyboards with own mapping and deflayermap for consistent base
 ;; ==========================================
 (deflayer qwerty
   esc      f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12
@@ -240,7 +241,7 @@
   tab      q    w    e    r    t    y    u    i    o    p    [    ]    \
   @esc-ctl a s d f g    h    j k l ; '    ret
   lsft     z    x    c    v    b    n    m    ,    .    /    rsft
-  fn       lctl lalt lmet          @spc-sym        rmet ralt rctl
+  fn       lctl lalt lmet          @spc-mo        rmet ralt rctl
 )
 
 ;; ==========================================
@@ -250,8 +251,9 @@
   esc      f1   f2   f3   f4   f5   f6   f7   f8   f9   f10  f11  f12
   @grv-ldr 1    2    3    4    5    6    7    8    9    0    -    =    bspc
   tab      q    w    f    p    b    j    l    u    y    ;    [    ]    \
-  @esc-ctl   a   r    s t  g    m    n    e    i o '    ret lsft       x    c    d    v    z    k    h    ,    .    /    rsft
-  @mse @sym-num-r1 lalt lmet                @spc-sym         @rpt-sym ralt @sym-num-r1
+  @esc-ctl   a   r    s t  g    m    n    e    i o '    
+  ret lsft       x    c    d    v    z    k    h    ,    .    /    rsft
+  @mse @sym-num-r1 lalt lmet                @spc-mo         @rpt-sym ralt @sym-num-r1
 )
 
 ;;  
@@ -281,7 +283,7 @@
   tab           v    m              l         c    p    b    u    o    ,    .     [    ]    \
   @esc-ctl s    t    r    d    y    f    n    e    a    i     '  ret
   lsft          x         k         j         g    w    z    h    /    S-/  q  rsft
-  fn       lctl lalt @mgc-met          @spc-sym @rpt-met ralt rctl
+  fn       lctl lalt @mgc-met          @spc-mo @rpt-met ralt rctl
 )
 
 ;; ==========================================
@@ -302,10 +304,6 @@
 ;; todo: repeat key on home row rh of ]
 ;; todo: combos for syms from base.
 ;; roll considerations in editing
-;; 13
-;; 14
-;; 14
-;; 8
 ;; obs, rolls, with ${} and ` not available 
 ;; ==========================================
 
@@ -322,6 +320,7 @@
   e S-8
   r f
   t p
+
   a 6
   s 4
   d 0
@@ -365,9 +364,10 @@
   c S-.
   v S-4
   b S-5
+  y S-6
   u S-3
   i S-2
-  o S-6
+  o S-p
   p .
   h `
   j S-/
@@ -483,7 +483,7 @@ e mlft       ;; Middle finger = Left Click
 r mrgt       ;; Index finger = Right Click
 ;; Ring finger = Middle Click
 
-caps  @exit-to-colemak
+caps  @switch-layer-mouse 
 ;;___ (multi _ @exit-to-colemak)
 )
 
