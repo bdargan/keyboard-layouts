@@ -1,8 +1,17 @@
 (defcfg
+  macos-dev-names-include (
+  "Apple Internal Keyboard / Trackpad"
+  "Brett.Dargan’s Keyboard"
+  "Magic Keyboard with Numeric Keypad"
+  )
+
   process-unmapped-keys yes ;; Vital for accurate multi-layout tracking
   concurrent-tap-hold     yes
   allow-hardware-repeat   no
   chords-v2-min-idle 10 
+
+  ;; "Bliss38_Proto"
+  
   ;; ** For MacOS **
   ;; input  (iokit-name "my-keyboard-product-string")
   ;; output (kext)
@@ -378,7 +387,8 @@
   m S-7
   , S-9
   . S-0
-  / S-- 
+  / S--
+   ___ (multi _ @exit-to-colemak)
 )
 
 ;; Number and Symbols - LH numbers - (RH alt trigger)
